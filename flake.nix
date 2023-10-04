@@ -11,8 +11,10 @@
         flakeModules.default = importApply ./nixinate { inherit withSystem; };
       in
       {
-        imports = [ flakeModules.default ];
-        flake = { inherit flakeModules; };
+        flake = {
+          inherit flakeModules;
+          flakeModule = flakeModules.default;
+        };
         systems = [
           "x86_64-linux"
           "x86_64-darwin"
