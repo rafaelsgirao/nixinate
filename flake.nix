@@ -8,10 +8,10 @@
     flake-parts.lib.mkFlake { inherit inputs; } ({ withSystem, flake-parts-lib, ... }:
       let
         inherit (flake-parts-lib) importApply;
-        flakeModules.nixinate = importApply ./nixinate { inherit withSystem; };
+        flakeModules.default = importApply ./nixinate { inherit withSystem; };
       in
       {
-        imports = [ flakeModules.nixinate ];
+        imports = [ flakeModules.default ];
         flake = { inherit flakeModules; };
         systems = [
           "x86_64-linux"
