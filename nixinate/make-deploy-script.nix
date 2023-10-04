@@ -34,7 +34,7 @@ let
       ( set -x; ${openssh} -t ${conn} "sudo nix-store --realise ${nixos-rebuild} ${flock} && sudo ${flock} -w 60 /dev/shm/nixinate-${machine} ${nixos-rebuild} ${nixOptions} ${switch} --flake ${flake}#${machine}" )
     '' else ''
       echo "🤞 Activating configuration non-hermetically on ${machine} via ssh:"
-      ( set -x; ${openssh} -t ${conn} "sudo flock -w 60 /dev/shm/nixinate-${machine} nixos-rebuild ${switch} --flake ${flake}#${machine}" )
+      ( set -x; ${openssh} -t ${conn} "sudo flock -w 60 /dev/shm/nixinate-${machine} nixos-rebuild ${nixOptions} ${switch} --flake ${flake}#${machine}" )
     '')
     else ''
       echo "🔨 Building system closure locally, copying it to remote store and activating it:"
