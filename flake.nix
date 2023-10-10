@@ -9,11 +9,15 @@
       let
         inherit (flake-parts-lib) importApply;
         flakeModules.default = importApply ./nixinate { inherit withSystem; };
+        nixosModules.default = import ./nixinate/module.nix;
       in
       {
         flake = {
           inherit flakeModules;
           flakeModule = flakeModules.default;
+
+          inherit nixosModules;
+          nixosModule = nixosModules.default;
         };
         systems = [
           "x86_64-linux"
