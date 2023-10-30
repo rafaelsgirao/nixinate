@@ -10,28 +10,19 @@ let
   #All main arguments to nixos-rebuild (taken from manpage), except 'edit.
   rebuildActions = [ "switch" "boot" "test" "build" "dry-build" "dry-activate" "build-vm" "build-vm-with-bootloader" ];
 in
-# nixpkgs.lib.genAttrs
-#   validMachines
-#   (x:
-#     {
-#       type = "app";
-#       program = toString (mkDeployScript {
-#         machine = x;
-#         dryRun = false;
-#       });
-#     }
-#   )
-  # // nixpkgs.lib.genAttrs
-  # (map (a: a + "-dry-run") validMachines)
-   nixpkgs.lib.genAttrs
-   (map (rebuildAction: (map: machineName: (machineName + "-" + rebuildAction) validMachines) ) rebuildActions )
-  # (map (a: a + "-dry-run") validMachines)
+nixpkgs.lib.genAttrs
+  (nixpkgs.lib.flatMap (machine: map (action: "${machine}-${action}") rebuildActions) validMachines)
   (x:
-    {
-      type = "app";
-      program = toString (mkDeployScript {
-        machine = nixpkgs.lib.removeSuffix "-dry-run" x;
-        dryRun = true;
-      });
-    }
+  let
+    parts = builtins.split "-" x;
+    machine = builtins.head parts;
+    action = builtins.last parts;
+  in
+  {
+    type = "app";
+    program = toString (mkDeployScript {
+      machine = machine;
+      dryRun = action;
+    });
+  }
   )
