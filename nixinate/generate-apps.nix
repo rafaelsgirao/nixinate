@@ -21,7 +21,7 @@ in
   #   )
   #   // nixpkgs.lib.genAttrs
   # (map (machineName: a + "-dry-run") validMachines)
-(builtins.concatMap (machine: map (rebuildAction: "${machine}-${action}") rebuildActions) validMachines)
+(builtins.concatMap (machine: map (rebuildAction: "${machine}-${rebuildAction}") rebuildActions) validMachines)
   (x:
   let
     parts = builtins.split "-" x;
