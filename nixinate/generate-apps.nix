@@ -9,10 +9,10 @@ let
   mkDeployScript = import ./make-deploy-script.nix { inherit nixpkgs pkgs flake; };
     rebuildActions = [ "switch" "boot" "test" "build" "dry-build" "dry-activate" "build-vm" "build-vm-with-bootloader" ];
 in
-# nixpkgs.lib.genAttrs
+nixpkgs.lib.genAttrs
   #   validMachines
   #   (x:
-  #     {
+#  #     {
   #       type = "app";
   #       program = toString (mkDeployScript {
   #         machine = x;
@@ -22,18 +22,22 @@ in
   #   )
   #   // nixpkgs.lib.genAttrs
   # (map (machineName: a + "-dry-run") validMachines)
-(map (rebuildAction: (map: machineName: (machineName + "-" + rebuildAction) validMachines) ) rebuildActions )
+# (builtins.concatMap (rebuildAction: (concatMap: machineName: (machineName + "-" + rebuildAction) validMachines) ) rebuildActions )
+# map validMachines
+ (nixpkgs.lib.concatMap (machine: map (action: machine + "-" + action) rebuildActions ) validMachines)
   (x:
   let
     parts = builtins.split "-" x;
     machineName = builtins.head parts;
-    rebuildAction = builtins.last parts;
+    #ugly, but works. I really can't bother figuring out better ATM
+    rebuildAction = builtins.toString (builtins.tail( builtins.tail parts));
   in
   {
     type = "app";
     program = toString (mkDeployScript {
       machine = machineName;
-      inherit rebuildAction;
+      rebuildAction = builtins.trace rebuildAction rebuildAction;
+      # inherit rebuildAction;
     });
   }
   )
