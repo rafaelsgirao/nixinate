@@ -7,6 +7,7 @@ let
       (x: nixpkgs.lib.optionalString
         (flake.nixosConfigurations."${x}".config.deploy.enable) "${x}"));
   mkDeployScript = import ./make-deploy-script.nix { inherit nixpkgs pkgs flake; };
+    rebuildActions = [ "switch" "boot" "test" "build" "dry-build" "dry-activate" "build-vm" "build-vm-with-bootloader" ];
 in
 # nixpkgs.lib.genAttrs
   #   validMachines
