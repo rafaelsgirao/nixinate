@@ -1,5 +1,5 @@
 { nixpkgs, pkgs, flake, ... }:
-{ machine, dryRun }:
+{ machine, rebuildAction }:
 let
   inherit (builtins) abort;
   inherit (pkgs.lib) getExe optionalString concatStringsSep;
@@ -31,14 +31,14 @@ let
     '' + (if hermetic then ''
       echo "🤞 Activating configuration hermetically on ${machine} via ssh:"
       ( set -x; ${nix} ${nixOptions} copy --derivation ${nixos-rebuild} ${flock} --to ssh://${conn} )
-      ( set -x; ${openssh} -t ${conn} "sudo nix-store --realise ${nixos-rebuild} ${flock} && sudo ${flock} -w 60 /dev/shm/nixinate-${machine} ${nixos-rebuild} ${nixOptions} ${switch} --flake ${flake}#${machine}" )
+      ( set -x; ${openssh} -t ${conn} "sudo nix-store --realise ${nixos-rebuild} ${flock} && sudo ${flock} -w 60 /dev/shm/nixinate-${machine} ${nixos-rebuild} ${nixOptions} ${rebuildAction} --flake ${flake}#${machine}" )
     '' else ''
       echo "🤞 Activating configuration non-hermetically on ${machine} via ssh:"
-      ( set -x; ${openssh} -t ${conn} "sudo flock -w 60 /dev/shm/nixinate-${machine} nixos-rebuild ${nixOptions} ${switch} --flake ${flake}#${machine}" )
+      ( set -x; ${openssh} -t ${conn} "sudo flock -w 60 /dev/shm/nixinate-${machine} nixos-rebuild ${nixOptions} ${rebuildAction} --flake ${flake}#${machine}" )
     '')
     else ''
       echo "🔨 Building system closure locally, copying it to remote store and activating it:"
-      ( set -x; NIX_SSHOPTS="-t" ${flock} -w 60 /dev/shm/nixinate-${machine} ${nixos-rebuild} ${nixOptions} ${switch} --flake ${flake}#${machine} --target-host ${conn} --use-remote-sudo ${optionalString substituteOnTarget "-s"} )
+      ( set -x; NIX_SSHOPTS="-t" ${flock} -w 60 /dev/shm/nixinate-${machine} ${nixos-rebuild} ${nixOptions} ${rebuildAction} --flake ${flake}#${machine} --target-host ${conn} --use-remote-sudo ${optionalString substituteOnTarget "-s"} )
 
     '');
 in
