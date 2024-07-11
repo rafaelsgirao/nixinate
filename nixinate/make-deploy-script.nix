@@ -9,6 +9,8 @@ let
   openssh = "${getExe pkgs.openssh}";
   flock = "${getExe pkgs.flock}";
 
+  rev = flake.rev or flake.dirtyRev or "unknown";
+  targetFlake = if rev == "unknown" then "${flake}" else "'${flake}?rev=${rev}'";
   n = flake.nixosConfigurations.${machine}.config.deploy;
   hermetic = n.hermetic;
   archiveFlake = n.archiveFlake;
@@ -24,6 +26,7 @@ let
     ''
       set -e
       echo "🚀 Deploying nixosConfigurations.${machine} from ${flake}"
+      echo "📌 Flake revision: ${rev}"
       echo "👤 SSH User: ${if user then n.sshUser else "$(whoami)"}"
       echo "🌐 SSH Host: ${n.host}"
     ''
@@ -44,16 +47,16 @@ let
             ''
                 echo "🤞 Activating configuration hermetically on ${machine} via ssh:"
                 ( set -x; ${nix} ${nixOptions} copy --derivation ${nixos-rebuild} ${flock} --to ssh://${conn} )
-                ( set -x; ${openssh} -t ${conn} "sudo nix-store --realise ${nixos-rebuild} ${flock} && sudo ${flock} -w 60 /dev/shm/nixinate-${machine} ${nixos-rebuild} ${nixOptions} ${rebuildAction} --flake ${flake}#${machine}" )
+                ( set -x; ${openssh} -t ${conn} "sudo nix-store --realise ${nixos-rebuild} ${flock} && sudo ${flock} -w 60 /dev/shm/nixinate-${machine} ${nixos-rebuild} ${nixOptions} ${rebuildAction} --flake ${targetFlake}#${machine}" )
             '' else
             ''
                 echo "🤞 Activating configuration non-hermetically on ${machine} via ssh:"
-                ( set -x; ${openssh} -t ${conn} "sudo flock -w 60 /dev/shm/nixinate-${machine} nixos-rebuild ${nixOptions} ${rebuildAction} --flake ${flake}#${machine}" )
+                ( set -x; ${openssh} -t ${conn} "sudo flock -w 60 /dev/shm/nixinate-${machine} nixos-rebuild ${nixOptions} ${rebuildAction} --flake ${targetFlake}#${machine}" )
             '')
       )
     else ''
       echo "🔨 Building system closure locally, copying it to remote store and activating it:"
-      ( set -x; NIX_SSHOPTS="-t" ${flock} -w 60 /dev/shm/nixinate-${machine} ${nixos-rebuild} ${nixOptions} ${rebuildAction} --flake ${flake}#${machine} --target-host ${conn} --use-remote-sudo ${optionalString substituteOnTarget "-s"} )
+      ( set -x; NIX_SSHOPTS="-t" ${flock} -w 60 /dev/shm/nixinate-${machine} ${nixos-rebuild} ${nixOptions} ${rebuildAction} --flake ${targetFlake}#${machine} --target-host ${conn} --use-remote-sudo ${optionalString substituteOnTarget "-s"} )
 
     '');
 in
