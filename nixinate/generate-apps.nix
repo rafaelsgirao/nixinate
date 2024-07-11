@@ -24,10 +24,10 @@ nixpkgs.lib.genAttrs
   # (map (machineName: a + "-dry-run") validMachines)
 # (builtins.concatMap (rebuildAction: (concatMap: machineName: (machineName + "-" + rebuildAction) validMachines) ) rebuildActions )
 # map validMachines
- (nixpkgs.lib.concatMap (machine: map (action: machine + "-" + action) rebuildActions ) validMachines)
+ (nixpkgs.lib.concatMap (machine: map (action: machine + "_" + action) rebuildActions ) validMachines)
   (x:
   let
-    parts = builtins.split "-" x;
+    parts = builtins.split "_" x;
     machineName = builtins.head parts;
     #ugly, but works. I really can't bother figuring out better ATM
     rebuildAction = builtins.toString (builtins.tail( builtins.tail parts));
