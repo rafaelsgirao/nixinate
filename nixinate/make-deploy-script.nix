@@ -1,7 +1,7 @@
 { nixpkgs, pkgs, flake, ... }:
 { machine, rebuildAction }:
 let
-  inherit (builtins) abort;
+  inherit (builtins) abort hasAttr;
   inherit (pkgs.lib) getExe optionalString concatStringsSep;
 
   nix = "${getExe pkgs.nix}";
@@ -10,7 +10,18 @@ let
   flock = "${getExe pkgs.flock}";
 
   rev = flake.rev or flake.dirtyRev or "unknown";
-  targetFlake = if rev == "unknown" then "${flake}" else "'${flake}?rev=${rev}'";
+  # forceRev = if (hasAttr "rev" flake) then flake.rev 
+  #           else if (hasAttr "dirtyRev" flake) then (builtins.head (builtins.split "-dirty"))
+  #           else "";
+#  https://github.com/NixOS/nix/blob/0363dbf2b956674d95b8597d2fedd20fc2b529df/src/libfetchers/path.cc#L45
+  targetFlake = "'${flake}?"
+            + optionalString (hasAttr "rev" flake) "&rev=${flake.rev}"
+            + optionalString (hasAttr "revCount" flake) "&revCount=${toString flake.revCount}"
+            + optionalString (hasAttr "lastModified" flake) "&lastModified=${toString flake.lastModified}"
+            + optionalString (hasAttr "narHash" flake) "&narHash=${flake.narHash}"
+            + "'"
+            ;
+  # targetFlake = if rev == "unknown" then "${flake}" else "'path:${flake}?rev=${rev}'";
   n = flake.nixosConfigurations.${machine}.config.deploy;
   hermetic = n.hermetic;
   archiveFlake = n.archiveFlake;
