@@ -9,13 +9,13 @@ let
   openssh = "${getExe pkgs.openssh}";
   flock = "${getExe pkgs.flock}";
 
-  rev = flake.rev or flake.dirtyRev or "unknown";
+  rev = flake.rev or flake.dirtyRev or pkgs.lib.fakeSha1;
   # forceRev = if (hasAttr "rev" flake) then flake.rev 
   #           else if (hasAttr "dirtyRev" flake) then (builtins.head (builtins.split "-dirty"))
   #           else "";
 #  https://github.com/NixOS/nix/blob/0363dbf2b956674d95b8597d2fedd20fc2b529df/src/libfetchers/path.cc#L45
-  targetFlake = "'${flake}?"
-            + optionalString (hasAttr "rev" flake) "&rev=${flake.rev}"
+  targetFlake = "'${flake}?rev=${rev}"
+            # + optionalString (hasAttr "rev" flake) "&rev=${flake.rev}"
             + optionalString (hasAttr "revCount" flake) "&revCount=${toString flake.revCount}"
             + optionalString (hasAttr "lastModified" flake) "&lastModified=${toString flake.lastModified}"
             + optionalString (hasAttr "narHash" flake) "&narHash=${flake.narHash}"
