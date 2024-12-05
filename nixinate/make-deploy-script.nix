@@ -35,6 +35,7 @@ let
 
   script =
     ''
+      #!${pkgs.stdenv.shell}
       set -e
       echo "🚀 Deploying nixosConfigurations.${machine} from ${flake}"
       echo "📌 Flake revision: ${rev}"
