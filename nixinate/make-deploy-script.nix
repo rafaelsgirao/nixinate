@@ -19,7 +19,7 @@ let
             # + optionalString (hasAttr "revCount" flake) "&revCount=${toString flake.revCount}"
             # + optionalString (hasAttr "lastModified" flake) "&lastModified=${toString flake.lastModified}"
             # + optionalString (hasAttr "narHash" flake) "&narHash=${flake.narHash}"
-            # + "'"
+            + "'"
             ;
   # targetFlake = if rev == "unknown" then "${flake}" else "'path:${flake}?rev=${rev}'";
   n = flake.nixosConfigurations.${machine}.config.deploy;
