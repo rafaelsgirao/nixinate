@@ -14,7 +14,7 @@ let
   #           else if (hasAttr "dirtyRev" flake) then (builtins.head (builtins.split "-dirty"))
   #           else "";
 #  https://github.com/NixOS/nix/blob/0363dbf2b956674d95b8597d2fedd20fc2b529df/src/libfetchers/path.cc#L45
-  targetFlake = "'${flake}?rev=${rev}"
+  targetFlake = "'${flake}"
             # + optionalString (hasAttr "rev" flake) "&rev=${flake.rev}"
             + optionalString (hasAttr "revCount" flake) "&revCount=${toString flake.revCount}"
             + optionalString (hasAttr "lastModified" flake) "&lastModified=${toString flake.lastModified}"
