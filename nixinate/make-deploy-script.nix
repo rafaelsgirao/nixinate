@@ -16,10 +16,10 @@ let
 #  https://github.com/NixOS/nix/blob/0363dbf2b956674d95b8597d2fedd20fc2b529df/src/libfetchers/path.cc#L45
   targetFlake = "'path:${flake}"
             # + optionalString (hasAttr "rev" flake) "&rev=${flake.rev}"
-            + optionalString (hasAttr "revCount" flake) "&revCount=${toString flake.revCount}"
-            + optionalString (hasAttr "lastModified" flake) "&lastModified=${toString flake.lastModified}"
-            + optionalString (hasAttr "narHash" flake) "&narHash=${flake.narHash}"
-            + "'"
+            # + optionalString (hasAttr "revCount" flake) "&revCount=${toString flake.revCount}"
+            # + optionalString (hasAttr "lastModified" flake) "&lastModified=${toString flake.lastModified}"
+            # + optionalString (hasAttr "narHash" flake) "&narHash=${flake.narHash}"
+            # + "'"
             ;
   # targetFlake = if rev == "unknown" then "${flake}" else "'path:${flake}?rev=${rev}'";
   n = flake.nixosConfigurations.${machine}.config.deploy;
