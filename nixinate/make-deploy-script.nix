@@ -4,10 +4,12 @@ let
   inherit (builtins) abort hasAttr;
   inherit (pkgs.lib) getExe optionalString concatStringsSep;
 
+  host = flake.nixosConfigurations.${machine};
   nix = "${getExe pkgs.nix}";
-  nixos-rebuild = "${getExe pkgs.nixos-rebuild}";
+  nixos-rebuild = "${getExe host.pkgs.nixos-rebuild}";
+  flock = "${getExe host.pkgs.flock}";
   openssh = "${getExe pkgs.openssh}";
-  flock = "${getExe pkgs.flock}";
+  # the definition of hermetic is somewhat broken here.
 
   rev = flake.rev or flake.dirtyRev or pkgs.lib.fakeSha1;
   # forceRev = if (hasAttr "rev" flake) then flake.rev 
@@ -22,7 +24,7 @@ let
             + "'"
             ;
   # targetFlake = if rev == "unknown" then "${flake}" else "'path:${flake}?rev=${rev}'";
-  n = flake.nixosConfigurations.${machine}.config.deploy;
+  n = host.config.deploy;
   hermetic = n.hermetic;
   archiveFlake = n.archiveFlake;
   user = n.sshUser != null;
@@ -47,18 +49,18 @@ let
           (if archiveFlake then 
              '' 
                 echo "🚀 Sending flake and its inputs to ${machine} via nix flake archive:"
-                ( set -x; ${nix} ${nixOptions} flake archive ${flake} --to ssh://${conn} )
+                ( set -x; ${nix} ${nixOptions} flake archive ${flake} --to ssh-ng://${conn} )
              ''
              else
              ''
                 echo "🚀 Sending flake to ${machine} via nix copy:"
-                ( set -x; ${nix} ${nixOptions} copy ${flake} --to ssh://${conn} )
+                ( set -x; ${nix} ${nixOptions} copy ${flake} --to ssh-ng://${conn} )
              ''
           )
           + (if hermetic then 
             ''
                 echo "🤞 Activating configuration hermetically on ${machine} via ssh:"
-                ( set -x; ${nix} ${nixOptions} copy --derivation ${nixos-rebuild} ${flock} --to ssh://${conn} )
+                ( set -x; ${nix} ${nixOptions} copy --derivation ${nixos-rebuild} ${flock} --to ssh-ng://${conn} )
                 ( set -x; ${openssh} -t ${conn} "sudo nix-store --realise ${nixos-rebuild} ${flock} && sudo ${flock} -w 60 /dev/shm/nixinate-${machine} ${nixos-rebuild} ${nixOptions} ${rebuildAction} --flake ${targetFlake}#${machine}" )
             '' else
             ''
